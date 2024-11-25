@@ -1,0 +1,285 @@
+definitions:
+  auth.creds:
+    properties:
+      password:
+        type: string
+      role:
+        type: string
+      username:
+        type: string
+    type: object
+  controllers.addPatientRequestPOST:
+    properties:
+      age:
+        type: integer
+      gender:
+        type: string
+      name:
+        type: string
+      notes:
+        type: string
+    required:
+    - age
+    - gender
+    - name
+    type: object
+  controllers.updatePatientNotesRequestPUT:
+    properties:
+      notes:
+        type: string
+    required:
+    - notes
+    type: object
+  controllers.updatePatientRequestPUT:
+    properties:
+      age:
+        type: integer
+      gender:
+        type: string
+      name:
+        type: string
+      notes:
+        type: string
+    required:
+    - age
+    - gender
+    - name
+    type: object
+  models.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  models.PatientSwagger:
+    properties:
+      age:
+        type: integer
+      gender:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      notes:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /doctor/patients:
+    get:
+      consumes:
+      - application/json
+      description: This API endpoint returns a list of all patients assigned to a
+        doctor.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of patients
+          schema:
+            items:
+              $ref: '#/definitions/models.PatientSwagger'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all patients for a doctor
+      tags:
+      - doctor
+  /doctor/patients/{id}/notes:
+    put:
+      consumes:
+      - application/json
+      description: This API endpoint updates the notes for a specific patient identified
+        by their ID.
+      parameters:
+      - description: Patient ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated Notes
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.updatePatientNotesRequestPUT'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated patient details
+          schema:
+            $ref: '#/definitions/models.PatientSwagger'
+        "400":
+          description: Invalid request (bad ID or JSON)
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update patient notes
+      tags:
+      - doctor
+  /login:
+    post:
+      description: This API endpoint allows users to log in by providing a username,
+        password, and role.
+      parameters:
+      - description: Login credentials
+        in: body
+        name: loginRequest
+        required: true
+        schema:
+          $ref: '#/definitions/auth.creds'
+      responses:
+        "200":
+          description: Login successful
+          schema:
+            type: string
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "401":
+          description: Invalid credentials
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Login to the system
+      tags:
+      - authentication
+  /logout:
+    post:
+      description: This API endpoint allows users to log out and clear their session.
+      responses:
+        "200":
+          description: Logged out successfully
+          schema:
+            type: string
+        "500":
+          description: Failed to logout
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Logout from the system
+      tags:
+      - authentication
+  /receptionist/patients:
+    get:
+      consumes:
+      - application/json
+      description: This API endpoint retrieves all patients from the system.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of all patients
+          schema:
+            items:
+              $ref: '#/definitions/models.PatientSwagger'
+            type: array
+        "500":
+          description: Failed to fetch patients
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Get all patients
+      tags:
+      - receptionist
+    post:
+      consumes:
+      - application/json
+      description: This API endpoint creates a new patient record in the system.
+      parameters:
+      - description: Patient Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.addPatientRequestPOST'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Details of the created patient
+          schema:
+            $ref: '#/definitions/models.PatientSwagger'
+        "400":
+          description: Invalid JSON request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add a new patient
+      tags:
+      - receptionist
+  /receptionist/patients/{id}:
+    delete:
+      description: This API endpoint deletes a patient by their ID.
+      parameters:
+      - description: Patient ID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Patient successfully deleted
+          schema:
+            type: string
+        "400":
+          description: Invalid patient ID
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Failed to delete patient
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Delete a patient
+      tags:
+      - receptionist
+    put:
+      consumes:
+      - application/json
+      description: This API endpoint updates the details of an existing patient using
+        their ID.
+      parameters:
+      - description: Patient ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Patient update data
+        in: body
+        name: patient
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.updatePatientRequestPUT'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Patient details after update
+          schema:
+            $ref: '#/definitions/models.PatientSwagger'
+        "400":
+          description: Invalid input
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "500":
+          description: Failed to update patient
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Update a patient's details
+      tags:
+      - receptionist
+swagger: "2.0"
